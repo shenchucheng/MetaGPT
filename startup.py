@@ -11,6 +11,7 @@ from metagpt.roles import (
     ProjectManager,
     QaEngineer,
 )
+from metagpt.roles.crawler_engineer import CrawlerEngineer
 from metagpt.software_company import SoftwareCompany
 
 
@@ -29,6 +30,7 @@ async def startup(
             ProductManager(),
             Architect(),
             ProjectManager(),
+            CrawlerEngineer(),
         ]
     )
 

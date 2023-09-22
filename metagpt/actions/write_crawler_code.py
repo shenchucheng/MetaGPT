@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2023/9/23 1:43
+@Author  : shenchucheng
+@File    : crawling_engineer.py
+"""
+
 import asyncio
 import sys
 from uuid import uuid4
@@ -11,7 +19,7 @@ from metagpt.tools.web_browser_engine import WebBrowserEngine
 from metagpt.utils.common import CodeParser
 
 SYSTEM_PROMPT = """You are a professional web crawler engineer, using Playwright to retrieve web pages and bs4 to parse HTML with Python.
-Note to return only in code form, your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
+Note to return only in one code form, your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
 
 ```python
 ...
@@ -32,7 +40,7 @@ The html of page to scrabe is show like below:
 """
 
 
-class WebCrawler(Action):
+class WriteCrawlerCode(Action):
     async def run(self, url, query):
         page = await WebBrowserEngine().run(url)
         soup = page.get_slim_soup()
@@ -42,7 +50,7 @@ class WebCrawler(Action):
 
 
 async def main(url: str, query: str, run_code: bool = True):
-    code = await WebCrawler().run(url, query)
+    code = await WriteCrawlerCode().run(url, query)
     uid = uuid4().hex
     path = WORKSPACE_ROOT / "cawler" / uid / "cawler.py"
     if not path.parent.exists():

@@ -11,6 +11,8 @@ from metagpt.actions.action import Action
 from metagpt.actions.action_output import ActionOutput
 from metagpt.actions.add_requirement import BossRequirement
 from metagpt.actions.debug_error import DebugError
+from metagpt.actions.write_crawler_code import WriteCrawlerCode
+from metagpt.actions.write_crawler_prd import WriteCrawlerPRD
 from metagpt.actions.design_api import WriteDesign
 from metagpt.actions.design_api_review import DesignReview
 from metagpt.actions.design_filenames import DesignFilenames
@@ -45,6 +47,8 @@ class ActionType(Enum):
     COLLECT_LINKS = CollectLinks
     WEB_BROWSE_AND_SUMMARIZE = WebBrowseAndSummarize
     CONDUCT_RESEARCH = ConductResearch
+    WRITE_CRAWLER_CODE = WriteCrawlerCode
+    WRITE_CRAWLER_PRD = WriteCrawlerPRD
 
 
 __all__ = [

@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : product_manager.py
 """
-from metagpt.actions import BossRequirement, WritePRD
+from metagpt.actions import BossRequirement, WriteCrawlerPRD, WritePRD
 from metagpt.roles import Role
 
 
@@ -37,5 +37,5 @@ class ProductManager(Role):
             constraints (str): Constraints or limitations for the product manager.
         """
         super().__init__(name, profile, goal, constraints)
-        self._init_actions([WritePRD])
+        self._init_actions([WritePRD, WriteCrawlerPRD])
         self._watch([BossRequirement])
