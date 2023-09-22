@@ -16,7 +16,7 @@ class WebPage(BaseModel):
     class Config:
         underscore_attrs_are_private = True
 
-    _soup : Optional[BeautifulSoup] = None
+    _soup: Optional[BeautifulSoup] = None
     _title: Optional[str] = None
 
     @property
@@ -24,7 +24,7 @@ class WebPage(BaseModel):
         if self._soup is None:
             self._soup = BeautifulSoup(self.html, "html.parser")
         return self._soup
-    
+
     @property
     def title(self):
         if self._title is None:
@@ -41,8 +41,29 @@ class WebPage(BaseModel):
             elif url.startswith(("http://", "https://")):
                 yield urljoin(self.url, url)
 
+    def get_slim_soup(self, keep_links: bool = False):
+        soup = _get_soup(self.html)
+        if keep_links:
+            return soup
 
-def get_html_content(page: str, base: str):
+        # for tag, key in (("a", "href"), (True, "style")):
+
+        #     for i in soup.find_all(tag):
+        #         if i.has_attr(key):
+        #             del i[key]
+
+        for i in soup.find_all(True):
+            for name in list(i.attrs):
+                if i[name] and name not in ["class"]:
+                    del i[name]
+
+        for i in soup.find_all(["svg", "img", "video", "audio"]):
+            i.decompose()
+
+        return soup
+
+
+def get_html_content(page: str):
     soup = _get_soup(page)
 
     return soup.get_text(strip=True)
@@ -51,7 +72,7 @@ def get_html_content(page: str, base: str):
 def _get_soup(page: str):
     soup = BeautifulSoup(page, "html.parser")
     # https://stackoverflow.com/questions/1936466/how-to-scrape-only-visible-webpage-text-with-beautifulsoup
-    for s in soup(["style", "script", "[document]", "head", "title"]):
+    for s in soup(["style", "script", "[document]", "head", "title", "footer"]):
         s.extract()
 
     return soup
