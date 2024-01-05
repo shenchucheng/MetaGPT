@@ -22,6 +22,7 @@ from metagpt.actions.write_code_review import WriteCodeReview
 from metagpt.actions.write_prd import WritePRD
 from metagpt.actions.write_prd_review import WritePRDReview
 from metagpt.actions.write_test import WriteTest
+from metagpt.actions.parse_sub_requirement import ParseSubRequirement
 
 
 class ActionType(Enum):
@@ -42,6 +43,7 @@ class ActionType(Enum):
     COLLECT_LINKS = CollectLinks
     WEB_BROWSE_AND_SUMMARIZE = WebBrowseAndSummarize
     CONDUCT_RESEARCH = ConductResearch
+    PARSE_SUB_REQUIREMENT = ParseSubRequirement
 
 
 __all__ = [

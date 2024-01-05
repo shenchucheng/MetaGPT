@@ -38,6 +38,55 @@ class WebPage(BaseModel):
             elif url.startswith(("http://", "https://")):
                 yield urljoin(self.url, url)
 
+    def get_slim_soup(self, keep_links: bool = False):
+        soup = _get_soup(self.html)
+        if keep_links:
+            return soup
+
+        for i in soup.find_all(True):
+            for name in list(i.attrs):
+                if i[name] and name not in ["class"]:
+                    del i[name]
+
+        for i in soup.find_all(["svg", "img", "video", "audio"]):
+            i.decompose()
+
+        return soup
+
+    def get_outline(self):
+        soup = _get_soup(self.html)
+        outline = []
+
+        def process_element(element, depth):
+            name = element.name
+            if not name:
+                return
+            if name in ["script", "style"]:
+                return
+
+            element_info = {"name": element.name, "depth": depth}
+
+            if name in ["svg"]:
+                element_info["text"] = None
+                outline.append(element_info)
+                return
+
+            element_info["text"] = element.string
+            # Check if the element has an "id" attribute
+            if "id" in element.attrs:
+                element_info["id"] = element["id"]
+
+            if "class" in element.attrs:
+                element_info["class"] = element["class"]
+            outline.append(element_info)
+            for child in element.children:
+                process_element(child, depth + 1)
+
+        for element in soup.body.children:
+            process_element(element, 1)
+
+        return outline
+
 
 def get_html_content(page: str, base: str):
     soup = _get_soup(page)
@@ -48,7 +97,7 @@ def get_html_content(page: str, base: str):
 def _get_soup(page: str):
     soup = BeautifulSoup(page, "html.parser")
     # https://stackoverflow.com/questions/1936466/how-to-scrape-only-visible-webpage-text-with-beautifulsoup
-    for s in soup(["style", "script", "[document]", "head", "title"]):
+    for s in soup(["style", "script", "[document]", "head", "title", "footer"]):
         s.extract()
 
     return soup

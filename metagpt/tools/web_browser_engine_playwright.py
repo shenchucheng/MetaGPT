@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from functools import partial
 from pathlib import Path
 from typing import Literal
 
@@ -47,24 +48,44 @@ class PlaywrightWrapper:
         self._context_kwargs = context_kwargs
         self._has_run_precheck = False
 
-    async def run(self, url: str, *urls: str) -> WebPage | list[WebPage]:
+    async def run(self, url: str, *urls: str, js=None) -> WebPage | list[WebPage]:
         async with async_playwright() as ap:
             browser_type = getattr(ap, self.browser_type)
             await self._run_precheck(browser_type)
             browser = await browser_type.launch(**self.launch_kwargs)
-            _scrape = self._scrape
+            _scrape = partial(self._scrape, browser=browser, js=js)
 
             if urls:
-                return await asyncio.gather(_scrape(browser, url), *(_scrape(browser, i) for i in urls))
-            return await _scrape(browser, url)
+                return await asyncio.gather(_scrape(url), *(_scrape(i) for i in urls))
+            return await _scrape(url)
 
-    async def _scrape(self, browser, url):
+    async def get_visible_element(self, url):
+        js = """function(){
+            function isElementVisible(element) {
+                var style = window.getComputedStyle(element);
+                return style.display !== 'none' && style.visibility !== 'hidden';
+            }
+            var allElements = document.getElementsByTagName('*');
+            for (var i = 0; i < allElements.length; i++) {
+                var element = allElements[i];
+                var isVisible = isElementVisible(element);
+                if (!isVisible) {
+                    element.parentNode.removeChild(element);
+                }
+            }
+        }
+        """
+        return await self.run(url, js=js)
+
+    async def _scrape(self, url, browser, js=None):
         context = await browser.new_context(**self._context_kwargs)
         page = await context.new_page()
         async with page:
             try:
                 await page.goto(url)
                 await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                if js is not None:
+                    await page.evaluate(js)
                 html = await page.content()
                 inner_text = await page.evaluate("() => document.body.innerText")
             except Exception as e:
