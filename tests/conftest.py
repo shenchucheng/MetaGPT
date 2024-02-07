@@ -14,6 +14,7 @@ import re
 import uuid
 from typing import Callable
 
+import aiohttp.web
 import pytest
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
@@ -231,3 +232,24 @@ def search_engine_mocker(aiohttp_mocker, curl_cffi_mocker, httplib2_mocker, sear
     aiohttp_mocker.rsp_cache = httplib2_mocker.rsp_cache = curl_cffi_mocker.rsp_cache = search_rsp_cache
     aiohttp_mocker.check_funcs = httplib2_mocker.check_funcs = curl_cffi_mocker.check_funcs = check_funcs
     yield check_funcs
+
+
+@pytest.fixture
+def http_server():
+    async def handler(request):
+        return aiohttp.web.Response(
+            text="""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+            <title>MetaGPT</title></head><body><h1>MetaGPT</h1></body></html>""",
+            content_type="text/html",
+        )
+
+    async def start():
+        server = aiohttp.web.Server(handler)
+        runner = aiohttp.web.ServerRunner(server)
+        await runner.setup()
+        site = aiohttp.web.TCPSite(runner, "localhost", 0)
+        await site.start()
+        host, port = site._server.sockets[0].getsockname()
+        return site, f"http://{host}:{port}"
+
+    return start

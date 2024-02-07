@@ -11,12 +11,14 @@ from metagpt.utils.parse_html import WebPage
 @pytest.mark.parametrize(
     "browser_type, url, urls",
     [
-        (WebBrowserEngineType.PLAYWRIGHT, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
-        (WebBrowserEngineType.SELENIUM, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
+        (WebBrowserEngineType.PLAYWRIGHT,),
+        (WebBrowserEngineType.SELENIUM,),
     ],
     ids=["playwright", "selenium"],
 )
-async def test_scrape_web_page(browser_type, url, urls):
+async def test_scrape_web_page(browser_type, http_server):
+    server, url = await http_server()
+    urls = [url, url, url]
     browser = web_browser_engine.WebBrowserEngine(engine=browser_type)
     result = await browser.run(url)
     assert isinstance(result, WebPage)
@@ -27,6 +29,7 @@ async def test_scrape_web_page(browser_type, url, urls):
         assert isinstance(results, list)
         assert len(results) == len(urls) + 1
         assert all(("MetaGPT" in i.inner_text) for i in results)
+    await server.stop()
 
 
 if __name__ == "__main__":
